@@ -3,21 +3,21 @@ import requests
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
-# ========== Airtable config ==========
+# ========== הגדרות Airtable ==========
 AIRTABLE_TOKEN = 'your_airtable_token'
 BASE_ID = 'your_base_id'
 TABLE_NAME = 'your_table_name'
 
-# ========== Telegram Bot Token ==========
+# ========== טוקן בוט טלגרם ==========
 BOT_TOKEN = 'your_telegram_token'
 
-# ========== States ==========
+# ========== מצבים ==========
 NAME, PHONE, SERVICE, DATE, TIME = range(5)
 
-# ========== Enable logging ==========
+# ========== הפעלת לוג ==========
 logging.basicConfig(level=logging.INFO)
 
-# ========== Airtable function ==========
+# ========== פונקציית Airtable ==========
 def save_to_airtable(name, phone, service, date, time):
     url = f'https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}'
     headers = {
@@ -26,11 +26,11 @@ def save_to_airtable(name, phone, service, date, time):
     }
     data = {
         "fields": {
-            "שם": name,
-            "טלפון": phone,
-            "שירות": service,
-            "תאריך": date,
-            "שעה": time
+            "Name": name,
+            "Telephone": phone,
+            "Service": service,
+            "Date": date,
+            "Time": time
         }
     }
     r = requests.post(url, json=data, headers=headers)
@@ -49,7 +49,7 @@ def get_name(update: Update, context: CallbackContext):
 def get_phone(update: Update, context: CallbackContext):
     context.user_data['phone'] = update.message.text
     reply_keyboard = [['תספורת', 'מניקור', 'פדיקור']]
-    update.message.reply_text("איזו שירות תרצה?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+    update.message.reply_text("איזה שירות תרצה?", reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
     return SERVICE
 
 def get_service(update: Update, context: CallbackContext):
