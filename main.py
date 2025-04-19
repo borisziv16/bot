@@ -77,11 +77,11 @@ async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["time"] = update.message.text
 
     data = {
-        "שם": context.user_data["name"],
-        "טלפון": context.user_data["phone"],
-        "שירות": context.user_data["service"],
-        "תאריך": context.user_data["date"],
-        "שעה": context.user_data["time"],
+        "Name": context.user_data["name"],
+        "Telephone": context.user_data["phone"],
+        "Service": context.user_data["service"],
+        "Date": context.user_data["date"],
+        "Time": context.user_data["time"],
     }
 
     success = save_to_airtable(data)
