@@ -9,7 +9,7 @@ BASE_ID = 'your_base_id'
 TABLE_NAME = 'your_table_name'
 
 # ========== טוקן בוט טלגרם ==========
-BOT_TOKEN = 'your_telegram_token'
+BOT_TOKEN = '7676944914:AAGPa18w7B2ines-1Eaq_Vc--Ph2cWfk8Zg'
 
 # ========== מצבים ==========
 NAME, PHONE, SERVICE, DATE, TIME = range(5)
