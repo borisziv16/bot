@@ -24,7 +24,7 @@ AIRTABLE_TOKEN = os.getenv("AIRTABLE_TOKEN")
 BASE_ID = os.getenv("BASE_ID")
 TABLE_NAME = "Appointments"
 
-# פונקציה לשמירה ל-Airtable
+# פונקציה לשמירה ל-Airtable עם הדפסת שגיאות מלאה
 def save_to_airtable(data):
     url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
     headers = {
@@ -32,16 +32,18 @@ def save_to_airtable(data):
         "Content-Type": "application/json"
     }
     payload = {"fields": data}
+
     try:
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         print("✅ נשלח ל-Airtable בהצלחה")
-        print("📄 תשובה:", response.text)
+        print("📄 תשובת Airtable:", response.text)
         return True
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         print("❌ שגיאה בשליחה ל-Airtable:")
         print(e)
-        print("📄 תשובת Airtable:", response.text)
+        if response is not None:
+            print("📄 תשובת Airtable:", response.text)
         return False
 
 # שלבי שיחה עם המשתמש
@@ -78,7 +80,7 @@ async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     data = {
         "Name": context.user_data["name"],
-        "Telephone": context.user_data["phone"],
+        "Telephon": context.user_data["phone"],
         "Service": context.user_data["service"],
         "Date": context.user_data["date"],
         "Time": context.user_data["time"],
@@ -89,7 +91,6 @@ async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("ההרשמה בוצעה בהצלחה 🎉")
     else:
         await update.message.reply_text("משהו השתבש בעת ההרשמה 😥")
-
     return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
