@@ -80,7 +80,7 @@ async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     data = {
         "Name": context.user_data["name"],
-        "Telephon": context.user_data["phone"],
+        "Telephone": context.user_data["phone"],
         "Service": context.user_data["service"],
         "Date": context.user_data["date"],
         "Time": context.user_data["time"],
