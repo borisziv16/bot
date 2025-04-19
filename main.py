@@ -4,9 +4,9 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 # ========== הגדרות Airtable ==========
-AIRTABLE_TOKEN = 'your_airtable_token'
-BASE_ID = 'your_base_id'
-TABLE_NAME = 'your_table_name'
+AIRTABLE_TOKEN = 'patTIywf6rzike3aW.40dc9d2731f53f35c20623eed7c965ac867f6a43ec6dc697b3102d6a896e4531'
+BASE_ID = 'apppPoWRlODOKG6UG'
+TABLE_NAME = 'Orders_recodring'
 
 # ========== טוקן בוט טלגרם ==========
 BOT_TOKEN = '7676944914:AAGPa18w7B2ines-1Eaq_Vc--Ph2cWfk8Zg'
