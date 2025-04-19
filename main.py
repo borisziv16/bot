@@ -1,15 +1,16 @@
 import logging
 import requests
+import os
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 # ========== הגדרות Airtable ==========
-AIRTABLE_TOKEN = 'q'
-BASE_ID = 's'
+AIRTABLE_TOKEN = os.getenv('AIRTABLE_TOKEN')
+BASE_ID = os.getenv('AIRTABLE_TOKEN')
 TABLE_NAME = 'Orders_recodring'
 
 # ========== טוקן בוט טלגרם ==========
-BOT_TOKEN = 'd'
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # ========== מצבים ==========
 NAME, PHONE, SERVICE, DATE, TIME = range(5)
