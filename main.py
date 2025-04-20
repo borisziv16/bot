@@ -1,7 +1,7 @@
 import logging
 import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
+from telegram.ext import (Updater, CommandHandler, MessageHandler, filters,
                           CallbackContext, CallbackQueryHandler, ConversationHandler)
 
 # --- קונסטנטים ---
@@ -121,10 +121,10 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            NAME: [MessageHandler(Filters.text & ~Filters.command, get_name)],
-            PHONE: [MessageHandler(Filters.text & ~Filters.command, get_phone)],
+            NAME: [MessageHandler(filters.text & ~filters.command, get_name)],
+            PHONE: [MessageHandler(filters.text & ~filters.command, get_phone)],
             SERVICE: [CallbackQueryHandler(get_service)],
-            DATE: [MessageHandler(Filters.text & ~Filters.command, get_date)],
+            DATE: [MessageHandler(filters.text & ~filters.command, get_date)],
             TIME: [CallbackQueryHandler(get_time)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
