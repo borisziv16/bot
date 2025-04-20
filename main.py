@@ -26,7 +26,7 @@ TABLE_NAME = "Appointments"
 
 # פונקציה לשמירה ל-Airtable עם הדפסת שגיאות מלאה
 def save_to_airtable(data):
-    url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
+    url = "https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
     headers = {
         "Authorization": f"Bearer {AIRTABLE_TOKEN}",
         "Content-Type": "application/json"
