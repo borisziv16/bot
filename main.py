@@ -10,9 +10,9 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, filters,
 #AIRTABLE_TABLE_NAME = 'Appointments'
 AIRTABLE_URL = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
 #TELEGRAM_TOKEN = 'your_telegram_token'
-TELEGRAM_TOKEN = os.getenv("BOT_TOKEN")
-AIRTABLE_API_KEY = os.getenv("AIRTABLE_TOKEN")
-AIRTABLE_BASE_ID = os.getenv("BASE_ID")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
+AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = "Appointments"
 
 headers = {
