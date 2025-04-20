@@ -1,82 +1,75 @@
-import os
 import logging
 import requests
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    ConversationHandler,
-    ContextTypes,
-    filters,
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
+                          CallbackContext, CallbackQueryHandler, ConversationHandler)
 
-# שלבים בשיחה
-NAME, PHONE, SERVICE, DATE, TIME = range(5)
-
-# הגדרות לוגים
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# משתני סביבה
+# --- קונסטנטים ---
+#AIRTABLE_API_KEY = 'your_airtable_api_key'
+#AIRTABLE_BASE_ID = 'your_base_id'
+#AIRTABLE_TABLE_NAME = 'Appointments'
+AIRTABLE_URL = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
+#TELEGRAM_TOKEN = 'your_telegram_token'
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-AIRTABLE_TOKEN = os.getenv("AIRTABLE_TOKEN")
-BASE_ID = os.getenv("BASE_ID")
+AIRTABLE_API_KEY = os.getenv("AIRTABLE_TOKEN")
+AIRTABLE_BASE_ID = os.getenv("BASE_ID")
 TABLE_NAME = "Appointments"
 
-# פונקציה לשמירה ל-Airtable עם הדפסת שגיאות מלאה
-def save_to_airtable(data):
-    url = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
-    headers = {
-        "Authorization": f"Bearer {AIRTABLE_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    payload = {"fields": data}
+headers = {
+    "Authorization": f"Bearer {AIRTABLE_API_KEY}",
+    "Content-Type": "application/json"
+}
 
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        print("✅ נשלח ל-Airtable בהצלחה")
-        print("📄 תשובת Airtable:", response.text)
-        return True
-    except requests.exceptions.RequestException as e:
-        print("❌ שגיאה בשליחה ל-Airtable:")
-        print(e)
-        if response is not None:
-            print("📄 תשובת Airtable:", response.text)
-        return False
+# שלבי השיחה
+NAME, PHONE, SERVICE, DATE, TIME = range(5)
 
-# שלבי שיחה עם המשתמש
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("שלום! איך קוראים לך?")
+# שעות קבועות לדוגמה
+ALL_HOURS = ["10:00", "11:30", "13:00", "14:30", "16:00"]
+
+# --- התחלה ---
+def start(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text("שלום! מה שמך המלא?")
     return NAME
 
-async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# --- שם ---
+def get_name(update: Update, context: CallbackContext) -> int:
     context.user_data["name"] = update.message.text
-    await update.message.reply_text("מה מספר הטלפון שלך?")
+    update.message.reply_text("מה מספר הטלפון שלך?")
     return PHONE
 
-async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# --- טלפון ---
+def get_phone(update: Update, context: CallbackContext) -> int:
     context.user_data["phone"] = update.message.text
-    services = [["תספורת", "צבע"], ["פן", "תסרוקת"]]
-    await update.message.reply_text(
-        "איזה שירות אתה רוצה?",
-        reply_markup=ReplyKeyboardMarkup(services, one_time_keyboard=True)
-    )
+    keyboard = [[InlineKeyboardButton(s, callback_data=s)] for s in ["תספורת", "מניקור", "עיסוי"]]
+    update.message.reply_text("בחר שירות:", reply_markup=InlineKeyboardMarkup(keyboard))
     return SERVICE
 
-async def get_service(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["service"] = update.message.text
-    await update.message.reply_text("לאיזה תאריך?")
+# --- שירות ---
+def get_service(update: Update, context: CallbackContext) -> int:
+    query = update.callback_query
+    query.answer()
+    context.user_data["service"] = query.data
+    query.edit_message_text("הכנס תאריך (בפורמט YYYY-MM-DD):")
     return DATE
 
-async def get_date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# --- תאריך ---
+def get_date(update: Update, context: CallbackContext) -> int:
     context.user_data["date"] = update.message.text
-    await update.message.reply_text("באיזו שעה?")
+    available_hours = get_available_hours(context.user_data["date"])
+
+    if not available_hours:
+        update.message.reply_text("אין שעות פנויות ביום זה. נסה תאריך אחר.")
+        return DATE
+
+    keyboard = [[InlineKeyboardButton(hour, callback_data=hour)] for hour in available_hours]
+    update.message.reply_text("בחר שעה:", reply_markup=InlineKeyboardMarkup(keyboard))
     return TIME
 
-async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["time"] = update.message.text
+# --- שעה ---
+def get_time(update: Update, context: CallbackContext) -> int:
+    query = update.callback_query
+    query.answer()
+    context.user_data["time"] = query.data
 
     data = {
         "Name": context.user_data["name"],
@@ -86,34 +79,60 @@ async def get_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Time": context.user_data["time"],
     }
 
-    success = save_to_airtable(data)
-    if success:
-        await update.message.reply_text("ההרשמה בוצעה בהצלחה 🎉")
+    response = requests.post(
+        AIRTABLE_URL,
+        headers=headers,
+        json={"fields": data}
+    )
+
+    if response.status_code == 200:
+        query.edit_message_text("✅ ההרשמה בוצעה בהצלחה!")
     else:
-        await update.message.reply_text("משהו השתבש בעת ההרשמה 😥")
+        query.edit_message_text("❌ משהו השתבש בעת ההרשמה.")
+        logging.error("שגיאה בכתיבה ל-Airtable: %s", response.text)
+
     return ConversationHandler.END
 
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("ביטלת את התהליך. יום נעים!")
+# --- שעות פנויות ---
+def get_available_hours(date_str):
+    params = {
+        "filterByFormula": f"Date='{date_str}'"
+    }
+    response = requests.get(AIRTABLE_URL, headers=headers, params=params)
+    if response.status_code != 200:
+        logging.warning("שגיאה בשליפת נתונים מ-Airtable: %s", response.text)
+        return ALL_HOURS
+    records = response.json().get("records", [])
+    taken = [r["fields"].get("Time") for r in records if "Time" in r["fields"]]
+    available = [h for h in ALL_HOURS if h not in taken]
+    return available
+
+# --- ביטול ---
+def cancel(update: Update, context: CallbackContext) -> int:
+    update.message.reply_text("בוטל.")
     return ConversationHandler.END
 
+# --- הפעלת הבוט ---
 def main():
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
+    logging.basicConfig(level=logging.INFO)
+    updater = Updater(TELEGRAM_TOKEN)
+    dp = updater.dispatcher
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
-            PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone)],
-            SERVICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_service)],
-            DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_date)],
-            TIME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_time)],
+            NAME: [MessageHandler(Filters.text & ~Filters.command, get_name)],
+            PHONE: [MessageHandler(Filters.text & ~Filters.command, get_phone)],
+            SERVICE: [CallbackQueryHandler(get_service)],
+            DATE: [MessageHandler(Filters.text & ~Filters.command, get_date)],
+            TIME: [CallbackQueryHandler(get_time)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
-    application.add_handler(conv_handler)
-    application.run_polling()
+    dp.add_handler(conv_handler)
+    updater.start_polling()
+    updater.idle()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
