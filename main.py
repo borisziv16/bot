@@ -8,12 +8,12 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, filters,
 #AIRTABLE_API_KEY = 'your_airtable_api_key'
 #AIRTABLE_BASE_ID = 'your_base_id'
 #AIRTABLE_TABLE_NAME = 'Appointments'
-AIRTABLE_URL = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
 #TELEGRAM_TOKEN = 'your_telegram_token'
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = "Appointments"
+AIRTABLE_URL = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
 
 headers = {
     "Authorization": f"Bearer {AIRTABLE_API_KEY}",
